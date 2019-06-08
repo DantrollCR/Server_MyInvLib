@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
     fd_set readfds;
 
     //mensaje inicial
-    //char *mensaje = "Hola cliente \r\n";
 
     //se inicializan todos los sockets como un 0
     for (i = 0; i < numMaxClientes; i++) {
@@ -117,12 +116,6 @@ int main(int argc, char *argv[]) {
                            (direccionServidor.sin_port));
             cout << inet_ntoa(direccionServidor.sin_addr) << endl;
 
-            //enviar a la nueva conexion un mensaje
-            /** if( send(nuevoSocket, mensaje, strlen(mensaje), 0) != strlen(mensaje) )
-             {
-                 perror("enviar");
-             }
-             puts("Hola");***/
 
             //agregar el socket que se acepto a la lista de sockets
             for (i = 0; i < numMaxClientes; i++) {
@@ -144,13 +137,19 @@ int main(int argc, char *argv[]) {
             sd = socketCliente[i];
 
             if (FD_ISSET(sd, &readfds)) {
-                //  Revisar si se cerrò el socket
-                //recibir mensaje
+
+                /**
+                 * Aquì ademàs de recibir el string del cliente, tambien verifica si
+                 * el socket ya se cerrò, para asi volver a esperar otro cliente, u otra
+                 * peticiòn en este caso.
+                 */
                 valorLeido = read(sd, buffer, 4096);//el buffer de datos
 
 
                 if (valorLeido == 0) {
-                    //SI ALGUIEN SE DESCONECTA
+                    /**
+                     * Cuando alguien se desconecta.
+                     */
                     getpeername(sd, (struct sockaddr *) &direccionServidor, \
                         (socklen_t *) &largoDireccion);
                     printf("Cliente desconectado en, ip %s , port %d \n",
@@ -162,10 +161,15 @@ int main(int argc, char *argv[]) {
 
                 }
 
-                    //Devolver el mensaje que se recibio
+                    /**
+                     * En este else se envia al Cliente algun mensaje, en este caso es el mismo que se
+                     * recibiò.
+                     * *Aqui tambien està el problema que hay un limite de caracteres, 33, y no se porque.
+                     *
+                     */
                 else {
 
-                    int ID_cliente = i; //indica el cliente actual
+                    int ID_cliente = i;
                     const void *cvp = &i;
 
                     buffer[valorLeido] = '\0';
@@ -177,6 +181,12 @@ int main(int argc, char *argv[]) {
 
                     string s = buffer;
                     if (s == "1") {
+                        /**
+                         * Send recibe:
+                         * @param sd : es el socket
+                         * @param mensaje2 es lo que se le envia al cliente
+                         * @params tercer espacio es el tamaño del mensaje, y el ultimo no sè.
+                         */
                         send(sd, mensaje2, strlen(mensaje2), 0);
                     } else {
                         string s = buffer;
