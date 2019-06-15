@@ -5,6 +5,14 @@
 #include <unistd.h> //close
 #include <arpa/inet.h> //close
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <cstdlib>
+#include <fstream>
+
+#include "Server.h"
+#include "Raid.h"
+#include "b64.c"
+
 
 #define TRUE 1
 #define FALSE 0
@@ -13,193 +21,38 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    auto sockfd = socket(PF_INET, SOCK_STREAM, 0);
-    fcntl(sockfd, F_SETFL, O_NONBLOCK);
-    int opt = TRUE;
-    int master_socket, largoDireccion, nuevoSocket, socketCliente[4],
-            numMaxClientes = 4, actividad, i, valorLeido, sd;
-    int max_sd;
-    struct sockaddr_in direccionServidor;
-    cout << max_sd << endl;
+    for (int i = 0; i < 4; ++i) {
+        string n = to_string(i);
+        system(("mkdir -p Disks/disk" + n).c_str()); // note the slash after accounts!
 
-    char buffer[180000]; //el buffer de datos
-
-    //SET DE SOCKETS (lista de sockets clientes)
-    fd_set readfds;
-
-    //mensaje inicial
-
-    //se inicializan todos los sockets como un 0
-    for (i = 0; i < numMaxClientes; i++) {
-        socketCliente[i] = 0;
     }
+    Raid raid;
+    char *path2 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba.jpg";
 
-    //Crear un socket general
-    if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("EL socket falló");
-        exit(EXIT_FAILURE);
-    }
+    char *path1 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba2.jpg";
+    char *name = "img_part";
 
-    //se hace un set del socket master para que reciba todas las conexiones
-    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt,
-                   sizeof(opt)) < 0) {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
 
-    //tipo de socket creado
-    direccionServidor.sin_family = AF_INET;
-    direccionServidor.sin_addr.s_addr = inet_addr("127.0.0.1");
-    direccionServidor.sin_port = htons(PUERTO);
-
-    cout << direccionServidor.sin_addr.s_addr << endl;
-
-    //COnecta el socket al puerto general 6969
-    if (bind(master_socket, (struct sockaddr *) &direccionServidor, sizeof(direccionServidor)) < 0) {
-        perror("Error al hacer el bind del socket");
-        exit(EXIT_FAILURE);
-    }
-    printf("Recibiendo en el puerto  %d \n", PUERTO);
-
-    //especificar el maximo de conexiones al socket
-    if (listen(master_socket, 3) < 0) {
-        perror("escuchando");
-        exit(EXIT_FAILURE);
-    }
-
-    //Aquì es donde acepta las conexiones
-    largoDireccion = sizeof(direccionServidor);
-    puts("Esperando conexiones al server . . . ");
-
-    while (TRUE) {
-        //LImpia un set de sockets
-        FD_ZERO(&readfds);
-
-        //agrega el socket master al set
-        FD_SET(master_socket, &readfds);
-        max_sd = master_socket;
-
-        //Agrega los socket CLIENTE al set
-        for (i = 0; i < numMaxClientes; i++) {
-            //descripcion del socket
-            sd = socketCliente[i];
-
-            //si el descriptor del socket es válido agregar a la lista de lectura
-            if (sd > 0)
-                FD_SET(sd, &readfds);
-
-            //el numero mas alto del file descriptor, sirve para la funcion de select
-            if (sd > max_sd)
-                max_sd = sd;
+    //raid.chunkFile(path2,name,2048);
+    raid.joinFile(name, path1);
+/*
+    string d = "Daniel";
+    unsigned char *a = (unsigned char *) "Daniel";
+    int i;
+    for (int j = 0; j < d.length(); ++j) {
+        for (i = 0; i < 8; i++) {
+            printf("%d", !!((a[j] << i) & 0x80));
         }
-
-        //esperar alguna accion en alguna de los sockets
-        //Null en el timeout para que espere indefinidamente
-        actividad = select(max_sd + 1, &readfds, NULL, NULL, NULL);
-
-        if ((actividad < 0) && (errno != EINTR)) {
-            printf("Error en la funcion de select()");
-        }
-
-        //Si algo pasa en el master socket
-        //quiere decir que esta recibiendo una conexion
-        if (FD_ISSET(master_socket, &readfds)) {
-            if ((nuevoSocket = accept(master_socket,
-                                      (struct sockaddr *) &direccionServidor, (socklen_t *) &largoDireccion)) < 0) {
-                perror("Aceptar");
-                exit(EXIT_FAILURE);
-            }
-
-            //INformar al usuario el numero de socket - usado en enviar() o recibir()
-            printf("Nueva conexion , el socket fd es %d , el IP es : %s , PUERTO : %d\n", nuevoSocket,
-                   inet_ntoa(direccionServidor.sin_addr), ntohs
-                           (direccionServidor.sin_port));
-            cout << inet_ntoa(direccionServidor.sin_addr) << endl;
-
-
-            //agregar el socket que se acepto a la lista de sockets
-            for (i = 0; i < numMaxClientes; i++) {
-                //si la posicion està vacìa
-                if (socketCliente[i] == 0) {
-                    //crea un nuevo socket en el set de sockets de clientes
-                    socketCliente[i] = nuevoSocket;
-                    printf("Agregando en la lista de sockets en la posicion %d\n", i);
-
-                    break;
-                }
-            }
-        }
-
-        int contador = 0;
-        for (i = 0; i < numMaxClientes; i++) {
-
-            //revisa uno por uno si està recibiendo algo
-            sd = socketCliente[i];
-
-            if (FD_ISSET(sd, &readfds)) {
-
-                /**
-                 * Aquì ademàs de recibir el string del cliente, tambien verifica si
-                 * el socket ya se cerrò, para asi volver a esperar otro cliente, u otra
-                 * peticiòn en este caso.
-                 */
-                valorLeido = read(sd, buffer, 4096);//el buffer de datos
-
-
-                if (valorLeido == 0) {
-                    /**
-                     * Cuando alguien se desconecta.
-                     */
-                    getpeername(sd, (struct sockaddr *) &direccionServidor, \
-                        (socklen_t *) &largoDireccion);
-                    printf("Cliente desconectado en, ip %s , port %d \n",
-                           inet_ntoa(direccionServidor.sin_addr), ntohs(direccionServidor.sin_port));
-
-                    //cerrar el socket de este cliente
-                    close(sd);
-                    socketCliente[i] = 0;
-
-                }
-
-                    /**
-                     * En este else se envia al Cliente algun mensaje, en este caso es el mismo que se
-                     * recibiò.
-                     * *Aqui tambien està el problema que hay un limite de caracteres, 33, y no se porque.
-                     *
-                     */
-                else {
-
-                    int ID_cliente = i;
-                    const void *cvp = &i;
-
-                    buffer[valorLeido] = '\0';
-
-                    std::cout << "Valor: " << buffer << std::endl;
-
-
-                    char *mensaje2 = "Mensaje recibido, y es: ";
-
-                    string s = buffer;
-                    if (s == "1") {
-                        /**
-                         * Send recibe:
-                         * @param sd : es el socket
-                         * @param mensaje2 es lo que se le envia al cliente
-                         * @params tercer espacio es el tamaño del mensaje, y el ultimo no sè.
-                         */
-                        send(sd, mensaje2, strlen(mensaje2), 0);
-                    } else {
-                        string s = buffer;
-                        send(sd, s.c_str(), s.length(), 0);
-
-                    }
-
-
-                }
-
-            }
-
-        }
+        printf(" ");
     }
+*/
+
+
+    return 0;
+
+    Server server;
+    //raid.copy_file(path1,path2);
+
+    return 0;
 
 }

@@ -9,6 +9,8 @@
 class Server {
 public:
     void init();
+
+    void createConnection();
 };
 
 
