@@ -8,6 +8,8 @@
 
 class Raid {
 public:
+    void checkFile(char *prefix, char *fileOutput);
+
     void recuperarArchivo(int parte, char *);
 
     void calculateParity(char *chunkName);

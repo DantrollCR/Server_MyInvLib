@@ -127,11 +127,25 @@ void Raid::recuperarArchivo(int parte, char *chunkName) {
     fileInput3.read(parityBuffer, fileSize);
     fileInput3.close();
 
+    file3.clear();
+    file3.append("/home/dantroll/CLionProjects/Server_MyInvLib/cmake-build-debug/Disks/disk2/img_part_3_.data");
+
+    fileInput3.open(file3.c_str(), ios::in | ios::binary);
+    char *check3 = new char[fileSize];
+    fileInput3.read(check3, fileSize);
+    fileInput3.close();
+
     if (parte == 1) {
         std::cout << "Recuperando la parte" << parte << std::endl;
         for (int k = 0; k < fileSize; ++k) {
             part1[k] = part2[k] ^ part3[k] ^ parityBuffer[k];
         }
+        file2.clear();
+        file2.append("/home/dantroll/CLionProjects/Server_MyInvLib/cmake-build-debug/Disks/disk0/img_part_1.data");
+        ofstream outputfile;
+        outputfile.open(file2, ios::out | ios::binary);
+        outputfile.write(part2, fileSize);
+        outputfile.close();
     } else if (parte == 2) {
 
         std::cout << "Recuperando la parte" << parte << std::endl;
@@ -147,10 +161,17 @@ void Raid::recuperarArchivo(int parte, char *chunkName) {
         outputfile.close();
 
     } else if (parte == 3) {
+        unsigned int x = 1;
         std::cout << "Recuperando la parte" << parte << std::endl;
         for (int k = 0; k < fileSize; ++k) {
             part3[k] = part1[k] ^ part2[k] ^ parityBuffer[k];
         }
+        for (int i = 0; i < fileSize; ++i) {
+            if ((check3[i] ^ part3[i]) == x) {
+                std::cout << "Error! en: " << i << std::endl;
+            }
+        }
+
         file3.clear();
         file3.append("/home/dantroll/CLionProjects/Server_MyInvLib/cmake-build-debug/Disks/disk2/img_part_3.data");
         ofstream outputfile;
@@ -222,7 +243,6 @@ void Raid::calculateParity(char *chunkName) {
             if (!fileInput.is_open()) {
                 std::cout << "Text here2" << std::endl;
                 filefound = true;
-                fileSize = 4565;
                 char *parityBuffer = new char[fileSize];
 
 
@@ -234,7 +254,7 @@ void Raid::calculateParity(char *chunkName) {
                 }
                 std::cout << "Ya creè la paridad" << std::endl;
 
-                outputfile.write(parityBuffer, fileSize);
+                outputfile.write(reinterpret_cast<const char *>(parityBuffer), fileSize);
 
                 delete parityBuffer;
 
@@ -250,6 +270,8 @@ void Raid::calculateParity(char *chunkName) {
 // Finds chunks by "chunkName" and creates file specified in fileOutput
 void Raid::joinFile(char *chunkName, char *fileOutput) {
     string fileName;
+    int pasa = 0;
+
     // Create our output file
     inicio:
     ofstream outputfile;
@@ -315,7 +337,12 @@ void Raid::joinFile(char *chunkName, char *fileOutput) {
                     } else {
                         std::cout << "La parte: " << counter << ", no existe. Recuperar o terminar programa."
                                   << std::endl;
+
                         recuperarArchivo(counter, chunkName);
+                        pasa++;
+                        if (pasa > 20) {
+                            break;
+                        }
                         goto inicio;
                     }
 

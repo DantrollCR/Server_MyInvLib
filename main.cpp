@@ -27,9 +27,9 @@ int main(int argc, char *argv[]) {
 
     }
     Raid raid;
-    char *path2 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba.jpg";
+    char *path2 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba2.jpeg";
 
-    char *path1 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba2.jpg";
+    char *path1 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba3.jpeg";
     char *name = "img_part";
 
 
