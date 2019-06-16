@@ -11618,7 +11618,7 @@ namespace nlohmann {
                 // use the Grisu2 algorithm to produce short numbers which are
                 // guaranteed to round-trip, using strtof and strtod, resp.
                 //
-                // NB: The test below works if <long double> == <double>.
+                // NB: The calculateParity below works if <long double> == <double>.
                 static constexpr bool is_ieee_single_or_double
                         = (std::numeric_limits<number_float_t>::is_iec559 and
                            std::numeric_limits<number_float_t>::digits == 24 and
@@ -18822,7 +18822,7 @@ Format](http://rfc7159.net/rfc7159)
                 if (op == "copy") {
                     return patch_operations::copy;
                 }
-                if (op == "test") {
+                if (op == "calculateParity") {
                     return patch_operations::test;
                 }
 
@@ -18996,13 +18996,13 @@ Format](http://rfc7159.net/rfc7159)
                         JSON_TRY {
                             // check if "value" matches the one at "path"
                             // the "path" location must exist - use at()
-                            success = (result.at(ptr) == get_value("test", "value", false));
+                            success = (result.at(ptr) == get_value("calculateParity", "value", false));
                         }
                         JSON_INTERNAL_CATCH (out_of_range &) {
                             // ignore out of range errors: success remains false
                         }
 
-                        // throw an exception if test fails
+                        // throw an exception if calculateParity fails
                         if (JSON_UNLIKELY(not success)) {
                             JSON_THROW(other_error::create(501, "unsuccessful: " + val.dump()));
                         }
@@ -19012,7 +19012,7 @@ Format](http://rfc7159.net/rfc7159)
 
                     default: {
                         // op must be "add", "remove", "replace", "move", "copy", or
-                        // "test"
+                        // "calculateParity"
                         JSON_THROW(parse_error::create(105, 0, "operation value '" + op + "' is invalid"));
                     }
                 }

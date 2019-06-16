@@ -7,6 +7,7 @@
 #include "Raid.h"
 #include "base64.h"
 #include <cstdlib>
+#include <cstring>
 #include <stdlib.h>
 #include <stdio.h>
 #include <cstring>
@@ -19,16 +20,16 @@ using json = nlohmann::json;
 using namespace std;
 
 // Chunks a file by breaking it up into chunks of "chunkSize" bytes.
-void Raid::chunkFile(char *fullFilePath, char *chunkName, unsigned long chunkSize) {
+void Raid::chunkFile(char *fullFilePath, char *chunkName) {
     ifstream fileStream;
-    fileStream.open(fullFilePath, ios::in | ios::binary);
+    fileStream.open(fullFilePath, ios::ate | ios::binary);
     fileStream.seekg(0, ios::end);
     int n = fileStream.tellg();
     fileStream.seekg(0, ios::beg);
 
     // File open a success
     std::cout << "Tamaño: " << n << std::endl;
-    unsigned int chunk = n / 3 + 1;
+    unsigned int fileSize = n / 3 + 1;
 
     if (fileStream.is_open()) {
         ofstream output;
@@ -37,8 +38,8 @@ void Raid::chunkFile(char *fullFilePath, char *chunkName, unsigned long chunkSiz
 
         string fullChunkName;
 
-        // Create a buffer to hold each chunk
-        char *buffer = new char[chunk];
+        // Create a buffer to hold each fileSize
+        char *buffer = new char[fileSize];
 
         // Keep reading until end of file
         while (!fileStream.eof()) {
@@ -46,8 +47,8 @@ void Raid::chunkFile(char *fullFilePath, char *chunkName, unsigned long chunkSiz
                 disco = 0;
             }
             string num = to_string(disco);
-            // Build the chunk file name. Usually drive:\\chunkName.ext.N
-            // N represents the Nth chunk
+            // Build the fileSize file name. Usually drive:\\chunkName.ext.N
+            // N represents the Nth fileSize
             std::cout << num << std::endl;
             fullChunkName.clear();
             fullChunkName.append(
@@ -60,14 +61,14 @@ void Raid::chunkFile(char *fullFilePath, char *chunkName, unsigned long chunkSiz
             char intBuf[10];
 
             std::cout << fullChunkName << std::endl;
-            // Open new chunk file name for output
+            // Open new fileSize file name for output
 
             output.open(fullChunkName, ios::out | ios::trunc | ios::binary);
             disco++;
-            // If chunk file opened successfully, read from input and
-            // write to output chunk. Then close.
+            // If fileSize file opened successfully, read from input and
+            // write to output fileSize. Then close.
             if (output.is_open()) {
-                fileStream.read(buffer, chunk);
+                fileStream.read(buffer, fileSize);
                 // gcount() returns number of bytes read from stream.
                 output.write(buffer, fileStream.gcount());
                 output.close();
@@ -79,17 +80,16 @@ void Raid::chunkFile(char *fullFilePath, char *chunkName, unsigned long chunkSiz
         delete (buffer);
         // Close input file stream.
         fileStream.close();
-        calculateParity(chunkName);
+        calculateParity(chunkName, fileSize);
 
         cout << "Chunking complete! " << counter - 1 << " files created." << endl;
     } else { cout << "Error opening file!" << endl; }
 }
 
-void Raid::recuperarArchivo(int parte, char *chunkName) {
+void Raid::recuperarArchivo(int parte, char *chunkName, int fileSize) {
     string file1;
     string file2;
     string file3;
-    int fileSize = 4565;
 
     file1.clear();
     file1.append("/home/dantroll/CLionProjects/Server_MyInvLib/cmake-build-debug/Disks/disk0/img_part_1.data");
@@ -102,37 +102,60 @@ void Raid::recuperarArchivo(int parte, char *chunkName) {
 
     // Open chunk to read
     ifstream fileInput;
-    fileInput.open(file1.c_str(), ios::in | ios::binary);
-    char *part1 = new char[4565];
-    fileInput.read(part1, 4565);
+    fileInput.open(file1.c_str(), ios::ate | ios::binary);
+    char *part1 = new char[fileSize];
+    fileInput.read(part1, fileSize);
+    std::vector<unsigned char> vec1;
+    for (int j = 0; j < fileSize; ++j) {
+        vec1.push_back(part1[j]);
+    }
     fileInput.close();
 
 
     ifstream fileInput2;
-    fileInput2.open(file2.c_str(), ios::in | ios::binary);
+    fileInput2.open(file2.c_str(), ios::ate | ios::binary);
     char *part2 = new char[fileSize];
     fileInput2.read(part2, fileSize);
+    std::vector<unsigned char> vec2;
+    for (int j = 0; j < fileSize; ++j) {
+        vec2.push_back(part2[j]);
+    }
     fileInput2.close();
 
     ifstream fileInput3;
-    fileInput3.open(file3.c_str(), ios::in | ios::binary);
-    char *part3 = new char[fileSize];
-    fileInput3.read(part3, fileSize);
+    fileInput3.open(file3.c_str(), ios::ate | ios::binary);
+    const unsigned char *part3 = new unsigned char[fileSize];
+    fileInput3.read((char *) part3, fileSize);
+    std::vector<unsigned char> vec3;
+    for (int j = 0; j < fileSize; ++j) {
+        vec3.push_back(part3[j]);
+    }
     fileInput3.close();
     file3.clear();
     file3.append("/home/dantroll/CLionProjects/Server_MyInvLib/cmake-build-debug/Disks/disk2/img_part_parity.data");
 
-    fileInput3.open(file3.c_str(), ios::in | ios::binary);
+    fileInput3.open(file3.c_str(), ios::ate | ios::binary);
     char *parityBuffer = new char[fileSize];
+
     fileInput3.read(parityBuffer, fileSize);
+    std::vector<unsigned char> vecP;
+    for (int j = 0; j < fileSize; ++j) {
+        vecP.push_back(parityBuffer[j]);
+    }
     fileInput3.close();
 
     file3.clear();
     file3.append("/home/dantroll/CLionProjects/Server_MyInvLib/cmake-build-debug/Disks/disk2/img_part_3_.data");
 
-    fileInput3.open(file3.c_str(), ios::in | ios::binary);
+    fileInput3.open(file3.c_str(), ios::ate | ios::binary);
     char *check3 = new char[fileSize];
+
+
     fileInput3.read(check3, fileSize);
+    std::vector<unsigned char> vec;
+    for (int j = 0; j < fileSize; ++j) {
+        vec.push_back(check3[j]);
+    }
     fileInput3.close();
 
     if (parte == 1) {
@@ -150,7 +173,7 @@ void Raid::recuperarArchivo(int parte, char *chunkName) {
 
         std::cout << "Recuperando la parte" << parte << std::endl;
         for (int k = 0; k < fileSize; ++k) {
-            part2[k] = part1[k] ^ part3[k] ^ parityBuffer[k];
+            vec2[k] = vec1[k] ^ vec3[k] ^ vecP[k];
         }
 
         file2.clear();
@@ -164,24 +187,21 @@ void Raid::recuperarArchivo(int parte, char *chunkName) {
         unsigned int x = 1;
         std::cout << "Recuperando la parte" << parte << std::endl;
         for (int k = 0; k < fileSize; ++k) {
-            part3[k] = part1[k] ^ part2[k] ^ parityBuffer[k];
+            vec3.push_back(vec1[k] ^ vec2[k] ^ vecP[k]);
         }
-        for (int i = 0; i < fileSize; ++i) {
-            if ((check3[i] ^ part3[i]) == x) {
-                std::cout << "Error! en: " << i << std::endl;
-            }
-        }
+        string s(vec3.begin(), vec3.end());
+        unsigned char *pos = vec3.data();
 
         file3.clear();
         file3.append("/home/dantroll/CLionProjects/Server_MyInvLib/cmake-build-debug/Disks/disk2/img_part_3.data");
         ofstream outputfile;
         outputfile.open(file3, ios::out | ios::binary);
-        outputfile.write(part3, fileSize);
+        outputfile.write(reinterpret_cast<const char *>(pos), fileSize);
         outputfile.close();
     }
 }
 
-void Raid::calculateParity(char *chunkName) {
+void Raid::calculateParity(char *chunkName, int fileSize) {
     string file1;
     string file2;
     string file3;
@@ -200,7 +220,6 @@ void Raid::calculateParity(char *chunkName) {
     if (outputfile.is_open()) {
         bool filefound = true;
         int counter = 1;
-        int fileSize = 0;
         int disco = 0;
 
         if (filefound) {
@@ -304,9 +323,8 @@ void Raid::joinFile(char *chunkName, char *fileOutput) {
 
             // Open chunk to read
             ifstream fileInput;
-            fileInput.open(fileName.c_str(), ios::in | ios::binary);
+            fileInput.open(fileName.c_str(), ios::ate | ios::binary);
             fileInput.seekg(0, ios::end);
-            int n = fileInput.tellg();
             fileInput.seekg(0, ios::beg);
 
             // If chunk opened successfully, read it and write it to
@@ -338,7 +356,7 @@ void Raid::joinFile(char *chunkName, char *fileOutput) {
                         std::cout << "La parte: " << counter << ", no existe. Recuperar o terminar programa."
                                   << std::endl;
 
-                        recuperarArchivo(counter, chunkName);
+                        recuperarArchivo(counter, chunkName, fileSize);
                         pasa++;
                         if (pasa > 20) {
                             break;

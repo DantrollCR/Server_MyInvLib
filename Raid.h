@@ -10,13 +10,13 @@ class Raid {
 public:
     void checkFile(char *prefix, char *fileOutput);
 
-    void recuperarArchivo(int parte, char *);
+    void recuperarArchivo(int parte, char *, int);
 
-    void calculateParity(char *chunkName);
+    void calculateParity(char *chunkName, int fileSize);
 
     std::string getImage(std::string base64);
 
-    void chunkFile(char *fullFilePath, char *chunkName, unsigned long chunkSize);
+    void chunkFile(char *fullFilePath, char *chunkName);
 
     std::string getBytes(const char *);
 

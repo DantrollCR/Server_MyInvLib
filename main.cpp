@@ -11,41 +11,44 @@
 
 #include "Server.h"
 #include "Raid.h"
+#include "Raid_2.h"
 #include "b64.c"
+#include "json.h"
 
-
-#define TRUE 1
-#define FALSE 0
-#define PUERTO 6969
+// for convenience
+using json = nlohmann::json;
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    for (int i = 0; i < 4; ++i) {
-        string n = to_string(i);
-        system(("mkdir -p Disks/disk" + n).c_str()); // note the slash after accounts!
+    json j;
 
-    }
     Raid raid;
-    char *path2 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba2.jpeg";
+    Raid_2 raid2;
+    string path2 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba2.jpeg";
 
-    char *path1 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba3.jpeg";
     char *name = "img_part";
 
+    raid2.init("/home/dantroll/CLionProjects/Server_MyInvLib/Disks");
+    //raid2.chunkFile(name,path2);
+    //raid2.calculateParity(name);
+    //raid2.recoverFile(1,name);
+    raid2.rebuildFile(name);
 
-    //raid.chunkFile(path2,name,2048);
-    raid.joinFile(name, path1);
-/*
-    string d = "Daniel";
-    unsigned char *a = (unsigned char *) "Daniel";
-    int i;
-    for (int j = 0; j < d.length(); ++j) {
-        for (i = 0; i < 8; i++) {
-            printf("%d", !!((a[j] << i) & 0x80));
-        }
-        printf(" ");
-    }
-*/
+
+    j["ID"] = "Galerias";
+    j["Dico1"] = {"Galeria 1.1", "Galeria 1.2", "Galeria 1.3"};
+    j["Disco2"] = {"Galeria 2.1", "Galeria 2.2", "Galeria 2.3"};
+
+
+    json j2;
+
+    j2["ID"] = "Imagen";
+    j2["Base64"] = "String largo del base64";
+    j2["Nombre"] = "Los Locos programadores.img";
+    j2["ETC"] = "LosDemas Datos";
+
+
 
 
     return 0;

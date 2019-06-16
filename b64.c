@@ -463,9 +463,9 @@ static void showuse(int morehelp) {
     } else {
         printf("  Options: -e  encode to Base64   -h  This help text.\n");
         printf("           -d  decode from Base64 -?  This help text.\n");
-        printf("           -t  Show test instructions. Under Windows the\n");
+        printf("           -t  Show calculateParity instructions. Under Windows the\n");
         printf("               following command line will pipe the help\n");
-        printf("               text to run a test:\n");
+        printf("               text to run a calculateParity:\n");
         printf("                   b64 -t | cmd\n");
         printf("  Note:    -l  use to change line size (from 72 characters)\n");
         printf("  Returns: 0 = success.  Non-zero is an error code.\n");
@@ -484,7 +484,7 @@ static void showuse(int morehelp) {
 
 void dotest(void) {
     printf(":See source code at sourceforge.net for\n");
-    printf(":Unit test information.\n");
+    printf(":Unit calculateParity information.\n");
     printf(":\n");
     printf(":Under Windows the following batch file will\n");
     printf(":do a quick reality check:\n");
