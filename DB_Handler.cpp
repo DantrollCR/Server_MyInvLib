@@ -18,4 +18,13 @@ void DB_Handler::init() {
 
 }
 
+void DB_Handler::INSERT(string img, string prefix, string data) {
+    this->counter++;
+    DB["METADATA"] = data;
+}
 
+void DB_Handler::INSERT(string img, string prefix, int data) {
+    this->counter++;
+    string met = "METADATA" + to_string(this->counter);
+    DB[met][prefix] = data;
+}

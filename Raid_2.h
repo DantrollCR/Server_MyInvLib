@@ -14,7 +14,7 @@ using namespace std;
 
 class Raid_2 {
 public:
-    void init(string, DB_Handler *);
+    void init(string);
 
     void calculateParity(string);
 

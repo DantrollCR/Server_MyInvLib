@@ -9,8 +9,7 @@ using namespace std;
 using json = nlohmann::json;
 
 
-void Raid_2::init(string path, DB_Handler *db) {
-    this->DB = db;
+void Raid_2::init(string path) {
     this->mainpath = path;
     /**
      * Esto crea un Directorio Disk, con 4 sub directorios, los cuales seràn los
@@ -21,7 +20,7 @@ void Raid_2::init(string path, DB_Handler *db) {
         system(("mkdir -p " + path + "/Disk" + n).c_str()); // note the slash after accounts!
 
     }
-
+    std::cout << "Directorio listo para usar" << std::endl;
 
 }
 
@@ -241,7 +240,6 @@ void Raid_2::chunkFile(string chunkName, string path) {
     int counter = 1;
     int disco = 1;
     char buffer[chunkSize];
-
     while (!file.eof()) {
         // Build the fileSize file name. Usually drive:\\chunkName.ext.N
         // N represents the Nth fileSize

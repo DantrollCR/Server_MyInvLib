@@ -17,7 +17,9 @@ public:
 
     void init();
 
-    void INSERT(string, json);
+    void INSERT(string, string, int);
+
+    void INSERT(string, string, string);
 
     void UPDATE(string, json);
 
@@ -26,6 +28,7 @@ public:
     void SELECT(string, json);
 
 private:
+    int counter;
     json DB;
 
 };

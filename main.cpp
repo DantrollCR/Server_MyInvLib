@@ -22,8 +22,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     DB_Handler db;
-
-
+    db.init();
     Raid_2 *raid2;
     string path2 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba.jpg";
     char *name = "img_part1";
@@ -31,7 +30,7 @@ int main(int argc, char *argv[]) {
     string path1 = "/home/dantroll/CLionProjects/Server_MyInvLib/test.png";
     char *name2 = "img_part2";
 
-    raid2->init("/home/dantroll/CLionProjects/Server_MyInvLib/Disks", &db);
+    raid2->init("/home/dantroll/CLionProjects/Server_MyInvLib/Disks");
     //raid2.chunkFile(name,path2);
     //raid2.calculateParity(name);
     //raid2.chunkFile(name2,path1);
