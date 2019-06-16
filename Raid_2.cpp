@@ -4,11 +4,13 @@
 #include <iostream>
 #include <fstream>
 #include "Raid_2.h"
-
+#include "json.h"
 using namespace std;
+using json = nlohmann::json;
 
 
-void Raid_2::init(string path) {
+void Raid_2::init(string path, DB_Handler *db) {
+    this->DB = db;
     this->mainpath = path;
     /**
      * Esto crea un Directorio Disk, con 4 sub directorios, los cuales seràn los
@@ -35,8 +37,9 @@ void Raid_2::calculateParity(string name) {
     int fileSize1;
     int fileSize2;
 
-    for (int j = 1; j < 4; ++j) {
+    for (int j = 1; j <= 4; ++j) {
         int disco = j;
+
         std::cout << this->mainpath << std::endl;
         fullname.append(mainpath + "/Disk" + to_string(j) + "/" + name + "_" + to_string(disco) + ".dat");
         file.open(fullname, ios::in | ios::binary);
@@ -80,7 +83,6 @@ void Raid_2::calculateParity(string name) {
     }
     ofstream out;
     out.open(mainpath + "/Disk" + to_string(parityPosition) + parityName, ios::out | ios::binary);
-    this->parityPosition--;
     out.write(parity, fileSize1);
 }
 
@@ -142,7 +144,7 @@ void Raid_2::recoverFile(int partId, string name) {
             part1[i] = part2[i] ^ part3[i] ^ parity[i];
         }
         ofstream out;
-        out.open(mainpath + "/Disk1/img_part_1.dat", ios::out | ios::binary);
+        out.open(mainpath + "/Disk1/" + name + "_1.dat", ios::out | ios::binary);
         out.write(part1, fileSize1);
 
     } else if (partId == 2) {
@@ -151,7 +153,7 @@ void Raid_2::recoverFile(int partId, string name) {
             part2[i] = part1[i] ^ part3[i] ^ parity[i];
         }
         ofstream out;
-        out.open(mainpath + "/Disk2/img_part_2.dat", ios::out | ios::binary);
+        out.open(mainpath + "/Disk2/" + name + "_2.dat", ios::out | ios::binary);
         out.write(part2, fileSize1);
 
     } else if (partId == 3) {
@@ -160,7 +162,7 @@ void Raid_2::recoverFile(int partId, string name) {
             part3[i] = part1[i] ^ part2[i] ^ parity[i];
         }
         ofstream out;
-        out.open(mainpath + "/Disk3/img_part_3.dat", ios::out | ios::binary);
+        out.open(mainpath + "/Disk3/" + name + "_3.dat", ios::out | ios::binary);
         out.write(part3, fileSize1);
     }
 
@@ -173,7 +175,7 @@ void Raid_2::rebuildFile(string chunkName) {
     // Create our output file
     inicio:
     ofstream outputfile;
-    outputfile.open("/home/dantroll/CLionProjects/Server_MyInvLib/Daniel_recover.jpeg", ios::out | ios::binary);
+    outputfile.open("/home/dantroll/CLionProjects/Server_MyInvLib/" + chunkName + ".jpg", ios::out | ios::binary);
 
     // If successful, loop through chunks matching chunkName
     if (outputfile.is_open()) {
@@ -241,9 +243,6 @@ void Raid_2::chunkFile(string chunkName, string path) {
     char buffer[chunkSize];
 
     while (!file.eof()) {
-        if (disco == parityPosition) {
-            disco++;
-        }
         // Build the fileSize file name. Usually drive:\\chunkName.ext.N
         // N represents the Nth fileSize
         fullChunkName.clear();

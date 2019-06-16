@@ -14,39 +14,32 @@
 #include "Raid_2.h"
 #include "b64.c"
 #include "json.h"
-
+#include "DB_Handler.h"
 // for convenience
 using json = nlohmann::json;
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    json j;
+    DB_Handler db;
 
-    Raid raid;
-    Raid_2 raid2;
-    string path2 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba2.jpeg";
 
-    char *name = "img_part";
+    Raid_2 *raid2;
+    string path2 = "/home/dantroll/CLionProjects/Server_MyInvLib/prueba.jpg";
+    char *name = "img_part1";
 
-    raid2.init("/home/dantroll/CLionProjects/Server_MyInvLib/Disks");
+    string path1 = "/home/dantroll/CLionProjects/Server_MyInvLib/test.png";
+    char *name2 = "img_part2";
+
+    raid2->init("/home/dantroll/CLionProjects/Server_MyInvLib/Disks", &db);
     //raid2.chunkFile(name,path2);
     //raid2.calculateParity(name);
+    //raid2.chunkFile(name2,path1);
+    //raid2.calculateParity(name2);
     //raid2.recoverFile(1,name);
-    raid2.rebuildFile(name);
+    //raid2->rebuildFile(name);
 
 
-    j["ID"] = "Galerias";
-    j["Dico1"] = {"Galeria 1.1", "Galeria 1.2", "Galeria 1.3"};
-    j["Disco2"] = {"Galeria 2.1", "Galeria 2.2", "Galeria 2.3"};
-
-
-    json j2;
-
-    j2["ID"] = "Imagen";
-    j2["Base64"] = "String largo del base64";
-    j2["Nombre"] = "Los Locos programadores.img";
-    j2["ETC"] = "LosDemas Datos";
 
 
 

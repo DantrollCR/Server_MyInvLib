@@ -5,11 +5,16 @@
 #ifndef SERVER_MYINVLIB_RAID_2_H
 #define SERVER_MYINVLIB_RAID_2_H
 
+#include "json.h"
+#include <iostream>
+#include "DB_Handler.h"
+
+using json = nlohmann::json;
 using namespace std;
 
 class Raid_2 {
 public:
-    void init(string);
+    void init(string, DB_Handler *);
 
     void calculateParity(string);
 
@@ -22,6 +27,7 @@ public:
     void recoverFile(int, string);
 
 private:
+    DB_Handler *DB;
     string mainpath;
     int parityPosition = 4;
 };
